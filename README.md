@@ -8,7 +8,7 @@
 
 ## 📅 記事一覧
 
-「ジャンルなしオンラインもくもく会 Advent Calendar 2025」の実装コードです。
+[ジャンルなしオンラインもくもく会 Advent Calendar 2025](https://adventar.org/calendars/11318) の実装コードです。
 
 | Day | 日付 | タイトル | 記事 |
 |-----|------|---------|------|
@@ -159,7 +159,7 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 
 ### MetalLB IP プール
 
-`kubernetes/infrastructure/metallb/config.yaml` で環境に合わせて変更：
+`kubernetes/infrastructure/metallb/config.yaml` で環境に合わせて変更
 
 ```yaml
 spec:
@@ -169,7 +169,7 @@ spec:
 
 ### Discord 通知
 
-`kubernetes/infrastructure/monitoring/values.yaml.example` をコピーして webhook URL を設定：
+`kubernetes/infrastructure/monitoring/values.yaml.example` をコピーして webhook URL を設定
 
 ```yaml
 discord_configs:
