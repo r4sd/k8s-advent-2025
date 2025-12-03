@@ -1,0 +1,11 @@
+# security-test namespace with PSS Restricted policy
+# Used for Day 8 Security article verification
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: security-test
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted

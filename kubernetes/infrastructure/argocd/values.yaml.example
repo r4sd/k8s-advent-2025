@@ -1,0 +1,198 @@
+# ArgoCD Helm values
+# homelab 環境向け設定
+
+global:
+  domain: argocd.homelab.local
+
+# =============================================================================
+# Server
+# =============================================================================
+server:
+  # Ingress 設定
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: homelab-ca-issuer
+      nginx.ingress.kubernetes.io/ssl-passthrough: "false"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    tls: true
+
+  # TLS を Ingress で終端するため、サーバー側は HTTP
+  extraArgs:
+    - --insecure
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# =============================================================================
+# Controller
+# =============================================================================
+controller:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# =============================================================================
+# Repo Server
+# =============================================================================
+repoServer:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# =============================================================================
+# Redis
+# =============================================================================
+redis:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# =============================================================================
+# ApplicationSet Controller
+# =============================================================================
+applicationSet:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# =============================================================================
+# Notifications Controller
+# =============================================================================
+notifications:
+  enabled: true
+
+  # Discord webhook Secret
+  # TODO: 環境に合わせて変更してください
+  secret:
+    items:
+      discord-webhook-url: "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+
+  # 通知サービス設定
+  notifiers:
+    service.webhook.discord: |
+      url: $discord-webhook-url
+      headers:
+        - name: Content-Type
+          value: application/json
+
+  # 通知テンプレート
+  templates:
+    template.app-sync-succeeded: |
+      webhook:
+        discord:
+          method: POST
+          body: |
+            {
+              "embeds": [{
+                "title": "✅ Sync Succeeded",
+                "description": "Application **{{.app.metadata.name}}** synced successfully",
+                "color": 3066993,
+                "fields": [
+                  {"name": "Application", "value": "{{.app.metadata.name}}", "inline": true},
+                  {"name": "Namespace", "value": "{{.app.spec.destination.namespace}}", "inline": true},
+                  {"name": "Revision", "value": "{{.app.status.sync.revision | substr 0 7}}", "inline": true}
+                ]
+              }]
+            }
+
+    template.app-sync-failed: |
+      webhook:
+        discord:
+          method: POST
+          body: |
+            {
+              "embeds": [{
+                "title": "❌ Sync Failed",
+                "description": "Application **{{.app.metadata.name}}** sync failed",
+                "color": 15158332,
+                "fields": [
+                  {"name": "Application", "value": "{{.app.metadata.name}}", "inline": true},
+                  {"name": "Namespace", "value": "{{.app.spec.destination.namespace}}", "inline": true},
+                  {"name": "Message", "value": "{{.app.status.operationState.message}}", "inline": false}
+                ]
+              }]
+            }
+
+    template.app-health-degraded: |
+      webhook:
+        discord:
+          method: POST
+          body: |
+            {
+              "embeds": [{
+                "title": "⚠️ Health Degraded",
+                "description": "Application **{{.app.metadata.name}}** health is degraded",
+                "color": 15105570,
+                "fields": [
+                  {"name": "Application", "value": "{{.app.metadata.name}}", "inline": true},
+                  {"name": "Health Status", "value": "{{.app.status.health.status}}", "inline": true}
+                ]
+              }]
+            }
+
+  # トリガー設定
+  triggers:
+    trigger.on-sync-succeeded: |
+      - when: app.status.operationState.phase in ['Succeeded']
+        send: [app-sync-succeeded]
+
+    trigger.on-sync-failed: |
+      - when: app.status.operationState.phase in ['Error', 'Failed']
+        send: [app-sync-failed]
+
+    trigger.on-health-degraded: |
+      - when: app.status.health.status == 'Degraded'
+        send: [app-health-degraded]
+
+  # デフォルトトリガー（全Applicationに適用）
+  subscriptions:
+    - recipients:
+        - discord
+      triggers:
+        - on-sync-succeeded
+        - on-sync-failed
+        - on-health-degraded
+
+# =============================================================================
+# Dex (SSO) - homelab では無効化
+# =============================================================================
+dex:
+  enabled: false
+
+# =============================================================================
+# Configs
+# =============================================================================
+configs:
+  params:
+    # UI 設定
+    server.disable.auth: false
+  cm:
+    # Dex 無効化
+    admin.enabled: "true"
+    # リポジトリ設定（後で追加）
+    # repositories: |
+    #   - url: https://github.com/your-org/your-repo
+    #     type: git

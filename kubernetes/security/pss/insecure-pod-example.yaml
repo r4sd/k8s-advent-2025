@@ -1,0 +1,17 @@
+# PSS Restricted policy VIOLATION example
+# This Pod will be REJECTED when applied to security-test namespace
+# Kept for documentation purposes - DO NOT apply to restricted namespaces
+apiVersion: v1
+kind: Pod
+metadata:
+  name: insecure-pod
+  namespace: security-test
+spec:
+  containers:
+  - name: nginx
+    image: nginx:latest
+    # Missing: securityContext
+    # Missing: allowPrivilegeEscalation: false
+    # Missing: capabilities drop ALL
+    # Missing: runAsNonRoot
+    # Missing: seccompProfile

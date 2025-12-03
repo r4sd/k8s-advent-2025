@@ -1,0 +1,20 @@
+# =============================================================================
+# ArgoCD Applications Kustomization
+# =============================================================================
+# NOTE: ArgoCD 本体のデプロイは Helm を使用
+#       infrastructure/argocd/values.yaml を参照
+#
+# このディレクトリは ArgoCD が管理する Application CRs を配置する予定
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: argocd
+
+# resources:
+#   - applications/  # 将来追加予定
+
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/part-of: homelab-infra

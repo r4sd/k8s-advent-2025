@@ -1,0 +1,63 @@
+# ===========================================
+# Hyper-V Provider Configuration
+# ===========================================
+# このファイルをコピーして terraform.tfvars を作成してください
+# cp terraform.tfvars.example terraform.tfvars
+#
+# IMPORTANT: terraform.tfvars は .gitignore に追加済み
+# ===========================================
+
+# Hyper-V接続設定
+hyperv_user     = "Administrator"
+hyperv_password = "YourPasswordHere"  # 実際のパスワードに置き換え
+hyperv_host     = "192.168.1.10"      # Hyper-V ホストの IP
+hyperv_port     = 5986                # WinRM HTTPS port
+hyperv_https    = true
+hyperv_insecure = true                # Self-signed 証明書の場合 true
+hyperv_use_ntlm = true
+hyperv_timeout  = 300
+
+# ネットワーク設定
+external_switch_name = "External-Switch"  # 外部接続用 Virtual Switch
+internal_switch_name = "Internal-Switch"  # 管理用 Virtual Switch
+
+# Talos Linuxイメージパス
+talos_iso_path = "C:\\ISO\\metal-amd64.iso"  # 実際のパスに置き換え
+
+# VM保存先
+vm_storage_path = "D:\\Hyper-V\\VMs"
+
+# VM共通設定
+vm_generation = 1  # Generation 1 or 2
+
+# Control Plane設定
+controlplane_name        = "k8s-cp-01"
+controlplane_cpu         = 2
+controlplane_memory_gb   = 4
+controlplane_disk_gb     = 20
+controlplane_external_mac = "00:15:5D:10:00:01"  # オプション: DHCP予約用
+controlplane_internal_mac = "00:15:5D:20:00:01"
+
+# Worker Node設定
+worker_count       = 3
+worker_name_prefix = "k8s-worker"
+
+# Worker リソース配分
+# Worker 1, 2: 汎用ワーカー
+# Worker 3: 監視専用（CPU/メモリ多め）
+worker_cpu       = [2, 2, 4]
+worker_memory_gb = [8, 8, 16]
+worker_disk_gb   = [50, 50, 100]
+
+# Worker MACアドレス（オプション: DHCP予約と連携）
+worker_external_macs = [
+  "00:15:5D:10:00:02",
+  "00:15:5D:10:00:03",
+  "00:15:5D:10:00:04"
+]
+
+worker_internal_macs = [
+  "00:15:5D:20:00:02",
+  "00:15:5D:20:00:03",
+  "00:15:5D:20:00:04"
+]

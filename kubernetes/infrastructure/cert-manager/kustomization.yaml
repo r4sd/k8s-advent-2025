@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: cert-manager
+
+resources:
+  # cert-manager公式マニフェスト
+  - https://github.com/cert-manager/cert-manager/releases/download/v1.13.2/cert-manager.yaml
+  # ClusterIssuer設定
+  - cluster-issuer.yaml
+
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/part-of: homelab-infra

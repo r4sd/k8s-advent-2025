@@ -1,0 +1,44 @@
+# Self-signed ClusterIssuer for homelab TLS certificates
+# 本番環境では Let's Encrypt などの ACME issuer を使用することを推奨
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-issuer
+  labels:
+    app.kubernetes.io/part-of: homelab-infra
+spec:
+  selfSigned: {}
+---
+# CA用の自己署名証明書を発行するためのIssuer
+# より本格的なCA階層を構築する場合に使用
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: homelab-ca-issuer
+  labels:
+    app.kubernetes.io/part-of: homelab-infra
+spec:
+  ca:
+    secretName: homelab-ca-secret
+---
+# homelab用のCA証明書（selfsigned-issuerで発行）
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: homelab-ca
+  namespace: cert-manager
+  labels:
+    app.kubernetes.io/part-of: homelab-infra
+spec:
+  isCA: true
+  commonName: homelab-ca
+  secretName: homelab-ca-secret
+  duration: 87600h # 10 years
+  renewBefore: 8760h # 1 year
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io

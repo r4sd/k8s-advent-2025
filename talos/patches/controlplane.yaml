@@ -1,0 +1,18 @@
+# Control Plane追加設定
+cluster:
+  allowSchedulingOnControlPlanes: false
+  apiServer:
+    certSANs:
+      - 10.0.0.200
+      - 192.168.100.10
+      - k8s-cp-01
+      - k8s-cp-01.homelab.lab
+  controllerManager:
+    extraArgs:
+      bind-address: 0.0.0.0
+  scheduler:
+    extraArgs:
+      bind-address: 0.0.0.0
+  etcd:
+    advertisedSubnets:
+      - 192.168.100.0/24  # Internal network for etcd

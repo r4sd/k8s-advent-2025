@@ -1,0 +1,57 @@
+# ===========================================
+# kube-prometheus-stack Helm Values (Example)
+# ===========================================
+# Copy this file to values.yaml and customize
+# ===========================================
+
+# Grafana 設定
+grafana:
+  enabled: true
+  adminPassword: "your-secure-password"  # 変更必須
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.your-domain.local  # 環境に合わせて変更
+
+# Prometheus 設定
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+# AlertManager 設定
+alertmanager:
+  enabled: true
+  config:
+    global:
+      resolve_timeout: 5m
+
+    route:
+      receiver: webhook
+      group_by: ['alertname', 'namespace']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+
+    receivers:
+      - name: webhook
+        webhook_configs:
+          - url: "https://your-webhook-url"  # Discord/Slack Webhook URL
+            send_resolved: true
+
+# 監視専用ノードにスケジュール（オプション）
+# nodeSelector:
+#   node-role.kubernetes.io/monitoring: "true"
+# tolerations:
+#   - key: "dedicated"
+#     operator: "Equal"
+#     value: "monitoring"
+#     effect: "NoSchedule"

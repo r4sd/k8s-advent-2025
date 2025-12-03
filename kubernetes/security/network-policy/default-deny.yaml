@@ -1,0 +1,13 @@
+# Default-Deny NetworkPolicy
+# IMPORTANT: Requires CNI support (Calico, Cilium, etc.)
+# Flannel does NOT support NetworkPolicy enforcement
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: security-test
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress

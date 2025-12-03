@@ -1,0 +1,8 @@
+# Worker Node追加設定
+machine:
+  kubelet:
+    extraArgs:
+      # メトリクス公開
+      address: 0.0.0.0
+      # Node labels（後でカスタマイズ可能）
+      # node-labels: "workload-type=general"

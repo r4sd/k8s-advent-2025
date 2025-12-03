@@ -1,0 +1,23 @@
+# 全ノード共通設定
+machine:
+  kubelet:
+    extraArgs:
+      rotate-server-certificates: true
+  time:
+    servers:
+      - time.cloudflare.com
+  features:
+    rbac: true
+    stableHostname: true
+
+cluster:
+  network:
+    cni:
+      name: flannel
+    dnsDomain: cluster.local
+    podSubnets:
+      - 10.244.0.0/16
+    serviceSubnets:
+      - 10.96.0.0/12
+  proxy:
+    disabled: false
