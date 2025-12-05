@@ -1,10 +1,10 @@
-# Network Policy Examples
+# NetworkPolicy サンプル
 
-## ⚠️ Important: CNI Requirement
+## ⚠️ 重要: CNI の要件
 
-NetworkPolicy requires CNI support to enforce rules. **Flannel does NOT support NetworkPolicy**.
+NetworkPolicy のルールを適用するには、対応した CNI が必要です。**Flannel は NetworkPolicy をサポートしていません**。
 
-### CNI Comparison
+### CNI 比較
 
 | CNI | NetworkPolicy | L7 Policy | eBPF |
 |-----|---------------|-----------|------|
@@ -12,16 +12,16 @@ NetworkPolicy requires CNI support to enforce rules. **Flannel does NOT support 
 | Calico | ✅ | ✅ | Optional |
 | Cilium | ✅ | ✅ | ✅ |
 
-### Current Cluster Status
+### 現在のクラスタ状態
 
-This cluster uses **Flannel**, so NetworkPolicy resources will be created but NOT enforced.
+このクラスタは **Flannel** を使用しているため、NetworkPolicy リソースは作成されますが適用されません。
 
-### Options to Enable NetworkPolicy
+### NetworkPolicy を有効にする方法
 
-1. **Replace CNI**: Migrate to Calico or Cilium (requires cluster rebuild)
-2. **Calico Policy-Only Mode**: Run Calico alongside Flannel for policy enforcement only
+1. **CNI の置き換え**: Calico または Cilium へ移行（クラスタ再構築が必要）
+2. **Calico Policy-Only モード**: Flannel と併用し、ポリシー適用のみ Calico を使用
 
-## Files
+## ファイル
 
-- `default-deny.yaml` - Blocks all ingress/egress (Zero Trust baseline)
-- `allow-specific.yaml` - Example of allowing specific pod-to-pod traffic
+- `default-deny.yaml` - 全 Ingress/Egress をブロック（ゼロトラストのベースライン）
+- `allow-specific.yaml` - 特定 Pod 間通信を許可するサンプル

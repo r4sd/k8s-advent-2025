@@ -10,7 +10,7 @@ resources:
 helmCharts:
   - name: kube-prometheus-stack
     repo: https://prometheus-community.github.io/helm-charts
-    version: "67.4.0"  # 2024年11月時点の安定版
+    version: "67.4.0"  # 後日アップグレード検証のため安定版を採用
     releaseName: kube-prometheus
     namespace: monitoring
     valuesFile: values.yaml
