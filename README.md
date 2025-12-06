@@ -15,7 +15,7 @@
 | 1 | 12/3 | アーキテクチャ全体像 | [Qiita](https://qiita.com/august009/items/8f3aa0927a35670c9117) |
 | 2 | 12/4 | Talos Linux入門 | [Qiita](https://qiita.com/august009/items/820ced68573b126fe729) |
 | 3 | 12/5 | Terraformでクラスタ構築 | [Qiita](https://qiita.com/august009/items/cbcd49069133b2aa4e05) |
-| 4 | 12/6 | 監視スタック構築 | 公開予定 |
+| 4 | 12/6 | 監視スタック構築 | [Qiita](https://qiita.com/august009/items/66fb07017558c40492de) |
 | 5 | 12/7 | TLS証明書管理 | 公開予定 |
 | 6 | 12/10 | Helm と Kustomize | 公開予定 |
 | 7 | 12/11 | ArgoCD GitOps実践 | 公開予定 |
