@@ -1,0 +1,30 @@
+# =============================================================================
+# ArgoCD Application: demo-app
+# =============================================================================
+# Public repository (k8s-advent-2025) の kubernetes/apps をGitOps管理
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-app
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/r4sd/k8s-advent-2025
+    targetRevision: main
+    path: kubernetes/apps
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

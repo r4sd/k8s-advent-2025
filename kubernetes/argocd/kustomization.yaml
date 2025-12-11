@@ -11,8 +11,8 @@ kind: Kustomization
 
 namespace: argocd
 
-# resources:
-#   - applications/  # 将来追加予定
+resources:
+  - applications/demo-app.yaml
 
 labels:
   - includeSelectors: true
