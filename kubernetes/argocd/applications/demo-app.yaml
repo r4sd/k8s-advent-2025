@@ -14,6 +14,7 @@ spec:
   project: default
 
   source:
+    # NOTE: sync-to-public.yml で k8s-advent-2025 に置換される
     repoURL: https://github.com/r4sd/k8s-advent-2025
     targetRevision: main
     path: kubernetes/apps
