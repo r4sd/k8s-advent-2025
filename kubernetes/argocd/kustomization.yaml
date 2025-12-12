@@ -13,6 +13,7 @@ namespace: argocd
 
 resources:
   - applications/demo-app.yaml
+  - applications/monitoring.yaml
 
 labels:
   - includeSelectors: true
