@@ -1,0 +1,61 @@
+# Control Plane ネットワーク設定サンプル
+# Tailscale Extension + 静的IP設定
+#
+# 使用方法:
+#   1. このファイルをコピーして network-cp.yaml などにリネーム
+#   2. 環境に合わせて以下を変更:
+#      - hostname
+#      - hardwareAddr (MACアドレス)
+#      - addresses (IPアドレス)
+#      - TS_AUTHKEY (Tailscale Auth Key)
+#   3. talosctl apply-config で適用
+#
+# 参考: https://www.talos.dev/v1.6/talos-guides/configuration/tailscale/
+
+machine:
+  network:
+    hostname: k8s-cp-01
+    interfaces:
+      # External Network - インターネット接続用
+      - deviceSelector:
+          hardwareAddr: "00:00:00:00:00:01"  # MACアドレスを指定
+        addresses:
+          - 10.0.0.200/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 10.0.0.1
+        dhcp: false
+      # Internal Network - クラスタ内部通信用（オプション）
+      - deviceSelector:
+          hardwareAddr: "00:00:00:00:00:02"
+        addresses:
+          - 192.168.100.10/24
+        dhcp: false
+    nameservers:
+      - 10.0.0.1
+      - 8.8.8.8
+  # Tailscale認証ファイル
+  files:
+    - content: |
+        TS_AUTHKEY=tskey-auth-XXXXXXXXXX-YYYYYYYYYYYYYYYYYYYYYYYYYYYY
+        TS_ROUTES=10.0.0.0/24,10.96.0.0/12,10.244.0.0/16
+        TS_ACCEPT_DNS=false
+        TS_EXTRA_ARGS=--advertise-tags=tag:k8s-node
+      permissions: 0o600
+      path: /var/etc/tailscale/auth.env
+      op: create
+  # Control Plane用ラベル
+  nodeLabels:
+    node.kubernetes.io/exclude-from-external-load-balancers: ""
+---
+# ExtensionServiceConfig（Talos v1.7以降必須）
+# このセクションがないとTailscaleサービスが起動しません
+apiVersion: v1alpha1
+kind: ExtensionServiceConfig
+name: tailscale
+environment:
+  - TS_AUTHKEY=tskey-auth-XXXXXXXXXX-YYYYYYYYYYYYYYYYYYYYYYYYYYYY
+  # Control Planeでは全てのネットワークを公開（リモートkubectl用）
+  - TS_ROUTES=10.0.0.0/24,10.96.0.0/12,10.244.0.0/16
+  - TS_ACCEPT_DNS=false
+  - TS_EXTRA_ARGS=--advertise-tags=tag:k8s-node

@@ -182,6 +182,90 @@ kubectl get nodes
 
 Talos LinuxのデフォルトCNI（Flannel）を使用します。
 
+## Tailscale Extension
+
+Talos v1.7以降では、Tailscale VPN拡張機能を利用してリモートアクセスが可能です。
+
+### 設定方法
+
+Tailscale拡張機能を有効にするには、以下の2つの設定が必要です：
+
+1. **machine.files** - 認証情報ファイルの配置
+2. **ExtensionServiceConfig** - 拡張サービスの設定
+
+#### パッチファイルの例
+
+```yaml
+# network-worker-01.yaml
+machine:
+  network:
+    hostname: k8s-worker-01
+    interfaces:
+      - deviceSelector:
+          hardwareAddr: "00:15:5d:00:0c:55"
+        addresses:
+          - 10.0.0.201/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 10.0.0.1
+        dhcp: false
+    nameservers:
+      - 10.0.0.1
+      - 8.8.8.8
+  # Tailscale認証ファイル
+  files:
+    - content: |
+        TS_AUTHKEY=tskey-auth-XXXXXXXXXX
+        TS_ROUTES=10.0.0.0/24
+        TS_ACCEPT_DNS=false
+        TS_EXTRA_ARGS=--advertise-tags=tag:k8s-node
+      permissions: 0o600
+      path: /var/etc/tailscale/auth.env
+      op: create
+---
+# ExtensionServiceConfig（必須！）
+apiVersion: v1alpha1
+kind: ExtensionServiceConfig
+name: tailscale
+environment:
+  - TS_AUTHKEY=tskey-auth-XXXXXXXXXX
+  - TS_ROUTES=10.0.0.0/24
+  - TS_ACCEPT_DNS=false
+  - TS_EXTRA_ARGS=--advertise-tags=tag:k8s-node
+```
+
+### 重要な注意点
+
+- **ExtensionServiceConfigが必須**: Talos v1.7以降では、`machine.files`だけでは不十分です。`ExtensionServiceConfig`リソースがないとTailscaleサービスは起動しません（"Waiting for extension service config"状態になる）
+- **YAMLドキュメント区切り**: `---`でmachine設定とExtensionServiceConfigを区切ります
+- **TS_ROUTES**: VPNで公開するネットワークを指定。K8s内部ネットワークを公開しない場合は`10.0.0.0/24`のみ
+
+### Tailscale Factory Image
+
+Tailscale拡張機能付きのTalosイメージを生成するには：
+
+1. [Talos Factory](https://factory.talos.dev/) にアクセス
+2. System Extensionsで「tailscale」を選択
+3. 生成されたイメージURLを使用してインストール/アップグレード
+
+```bash
+# アップグレード例
+talosctl upgrade --image factory.talos.dev/metal-installer/<SCHEMATIC_ID>:v1.11.6 --preserve
+```
+
+### サービス状態確認
+
+```bash
+# Tailscaleサービス状態
+talosctl --nodes 10.0.0.201 services | grep tailscale
+
+# ExtensionServiceConfig確認
+talosctl --nodes 10.0.0.201 get extensionserviceconfig tailscale -o yaml
+
+# 認証ファイル確認
+talosctl --nodes 10.0.0.201 read /var/etc/tailscale/auth.env
+```
+
 ## 運用コマンド
 
 ### ノード状態確認
@@ -334,6 +418,20 @@ Talos APIはmTLS（相互TLS認証）を使用します：
 
 ## 参考
 
+### 公式ドキュメント
+
 - [Talos Linux公式ドキュメント](https://www.talos.dev/)
-- [Talos on Hyper-V](https://www.talos.dev/v1.5/talos-guides/install/virtualized-platforms/hyper-v/)
-- [talosctl CLI Reference](https://www.talos.dev/v1.5/reference/cli/)
+- [Talos on Hyper-V](https://www.talos.dev/v1.11/talos-guides/install/virtualized-platforms/hyper-v/)
+- [talosctl CLI Reference](https://www.talos.dev/v1.11/reference/cli/)
+
+### Tailscale関連
+
+- [Talos Factory - System Extensions](https://factory.talos.dev/)
+- [Tailscale Extension ドキュメント](https://www.talos.dev/v1.11/talos-guides/configuration/tailscale/)
+- [ExtensionServiceConfig API](https://www.talos.dev/v1.11/reference/configuration/extensions/extensionserviceconfig/)
+
+### Machine Config
+
+- [Machine Configuration Reference](https://www.talos.dev/v1.11/reference/configuration/)
+- [Network Configuration](https://www.talos.dev/v1.11/talos-guides/network/static-addressing/)
+- [Device Selector](https://www.talos.dev/v1.11/talos-guides/network/predictable-interface-names/)

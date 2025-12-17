@@ -1,0 +1,57 @@
+# Worker Node ネットワーク設定サンプル
+# Tailscale Extension + 静的IP設定
+#
+# 使用方法:
+#   1. このファイルをコピーして network-worker-01.yaml などにリネーム
+#   2. 環境に合わせて以下を変更:
+#      - hostname
+#      - hardwareAddr (MACアドレス)
+#      - addresses (IPアドレス)
+#      - TS_AUTHKEY (Tailscale Auth Key)
+#   3. talosctl apply-config で適用
+#
+# 参考: https://www.talos.dev/v1.6/talos-guides/configuration/tailscale/
+
+machine:
+  network:
+    hostname: k8s-worker-01
+    interfaces:
+      # External Network - インターネット接続用
+      - deviceSelector:
+          hardwareAddr: "00:00:00:00:00:01"  # MACアドレスを指定
+        addresses:
+          - 10.0.0.201/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 10.0.0.1
+        dhcp: false
+      # Internal Network - クラスタ内部通信用（オプション）
+      - deviceSelector:
+          hardwareAddr: "00:00:00:00:00:02"
+        addresses:
+          - 192.168.100.11/24
+        dhcp: false
+    nameservers:
+      - 10.0.0.1
+      - 8.8.8.8
+  # Tailscale認証ファイル
+  files:
+    - content: |
+        TS_AUTHKEY=tskey-auth-XXXXXXXXXX-YYYYYYYYYYYYYYYYYYYYYYYYYYYY
+        TS_ROUTES=10.0.0.0/24
+        TS_ACCEPT_DNS=false
+        TS_EXTRA_ARGS=--advertise-tags=tag:k8s-node
+      permissions: 0o600
+      path: /var/etc/tailscale/auth.env
+      op: create
+---
+# ExtensionServiceConfig（Talos v1.7以降必須）
+# このセクションがないとTailscaleサービスが起動しません
+apiVersion: v1alpha1
+kind: ExtensionServiceConfig
+name: tailscale
+environment:
+  - TS_AUTHKEY=tskey-auth-XXXXXXXXXX-YYYYYYYYYYYYYYYYYYYYYYYYYYYY
+  - TS_ROUTES=10.0.0.0/24
+  - TS_ACCEPT_DNS=false
+  - TS_EXTRA_ARGS=--advertise-tags=tag:k8s-node
