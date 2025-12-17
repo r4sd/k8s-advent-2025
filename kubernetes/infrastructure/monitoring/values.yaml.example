@@ -1,332 +1,72 @@
-# kube-prometheus-stack Helm values
-# 監視専用ノード (talos-np5-tbl) への配置設定付き
+# ===========================================
+# kube-prometheus-stack Helm Values (Example)
+# ===========================================
+# Copy this file to values.yaml and customize
+# ===========================================
 
-# =============================================================================
-# 共通設定: 監視専用ノードへの配置
-# =============================================================================
-# 対象ノード: talos-np5-tbl (10.0.0.108)
-# ラベル: node-role.kubernetes.io/monitoring=true
-# Taint: dedicated=monitoring:NoSchedule
+# Grafana 設定
+grafana:
+  enabled: true
+  adminPassword: "your-secure-password"  # 変更必須
 
-commonLabels:
-  app.kubernetes.io/part-of: homelab-infra
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.your-domain.local  # 環境に合わせて変更
 
-# =============================================================================
-# Prometheus
-# =============================================================================
+# Prometheus 設定
 prometheus:
   prometheusSpec:
-    # 監視専用ノードに配置
-    nodeSelector:
-      node-role.kubernetes.io/monitoring: "true"
-    tolerations:
-      - key: dedicated
-        operator: Equal
-        value: monitoring
-        effect: NoSchedule
+    retention: 7d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
 
-    # リソース制限（homelab向け）
-    resources:
-      requests:
-        cpu: 200m
-        memory: 512Mi
-      limits:
-        cpu: 1000m
-        memory: 2Gi
+  # Prometheus Ingress（オプション）
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - prometheus.your-domain.local  # 環境に合わせて変更
 
-    # データ保持期間
-    retention: 15d
-    retentionSize: "10GB"
-
-    # ストレージ設定（StorageClass がないため emptyDir を使用）
-    # Longhorn 導入後に PVC に変更可能
-    storageSpec: {}
-
-    # 全Namespaceからメトリクス収集
-    serviceMonitorSelectorNilUsesHelmValues: false
-    podMonitorSelectorNilUsesHelmValues: false
-
-# =============================================================================
-# Alertmanager
-# =============================================================================
+# AlertManager 設定
 alertmanager:
-  alertmanagerSpec:
-    # 監視専用ノードに配置
-    nodeSelector:
-      node-role.kubernetes.io/monitoring: "true"
-    tolerations:
-      - key: dedicated
-        operator: Equal
-        value: monitoring
-        effect: NoSchedule
+  enabled: true
 
-    resources:
-      requests:
-        cpu: 50m
-        memory: 64Mi
-      limits:
-        cpu: 200m
-        memory: 256Mi
+  # Alertmanager Ingress（オプション）
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - alertmanager.your-domain.local  # 環境に合わせて変更
 
-  # AlertManager設定
   config:
     global:
       resolve_timeout: 5m
 
     route:
-      receiver: discord
+      receiver: webhook
       group_by: ['alertname', 'namespace']
       group_wait: 30s
       group_interval: 5m
       repeat_interval: 4h
-      routes:
-        # Critical は即座に通知
-        - match:
-            severity: critical
-          receiver: discord
-          group_wait: 10s
-          repeat_interval: 1h
-        # Warning は通常通知
-        - match:
-            severity: warning
-          receiver: discord
 
     receivers:
-      - name: discord
-        discord_configs:
-          # TODO: 環境に合わせて変更してください
-          - webhook_url: "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+      - name: webhook
+        webhook_configs:
+          - url: "https://your-webhook-url"  # Discord/Slack Webhook URL
             send_resolved: true
-            title: '{{ if eq .Status "firing" }}🔥 Alert{{ else }}✅ Resolved{{ end }}'
-            message: |
-              **{{ .CommonAnnotations.summary }}**
-              {{ .CommonAnnotations.description }}
-              Severity: {{ .CommonLabels.severity }}
 
-    inhibit_rules:
-      - source_match:
-          severity: critical
-        target_match:
-          severity: warning
-        equal: ['alertname', 'namespace']
-
-# =============================================================================
-# Grafana
-# =============================================================================
-grafana:
-  # 監視専用ノードに配置
-  nodeSelector:
-    node-role.kubernetes.io/monitoring: "true"
-  tolerations:
-    - key: dedicated
-      operator: Equal
-      value: monitoring
-      effect: NoSchedule
-
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
-    limits:
-      cpu: 500m
-      memory: 512Mi
-
-  # 管理者パスワード（本番では Secret 化推奨）
-  adminPassword: "admin"  # TODO: 変更してください
-
-  # Ingress設定
-  ingress:
-    enabled: true
-    ingressClassName: nginx
-    annotations:
-      cert-manager.io/cluster-issuer: homelab-ca-issuer
-    hosts:
-      - grafana.homelab.local
-    # TLS設定（cert-manager で自動発行）
-    tls:
-      - secretName: grafana-tls
-        hosts:
-          - grafana.homelab.local
-
-  # 追加のデータソース
-  additionalDataSources: []
-
-  # サイドカー設定（ConfigMap からダッシュボード自動読み込み）
-  sidecar:
-    dashboards:
-      enabled: true
-      label: grafana_dashboard
-      searchNamespace: ALL
-    datasources:
-      enabled: true
-      label: grafana_datasource
-
-# =============================================================================
-# Node Exporter（全ノードで実行 - DaemonSet）
-# =============================================================================
-nodeExporter:
-  enabled: true
-  # DaemonSetなので全ノードで実行（tolerations不要）
-
-# =============================================================================
-# kube-state-metrics
-# =============================================================================
-kubeStateMetrics:
-  enabled: true
-
-# =============================================================================
-# Prometheus Operator
-# =============================================================================
-prometheusOperator:
-  # 監視専用ノードに配置
-  nodeSelector:
-    node-role.kubernetes.io/monitoring: "true"
-  tolerations:
-    - key: dedicated
-      operator: Equal
-      value: monitoring
-      effect: NoSchedule
-
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
-    limits:
-      cpu: 200m
-      memory: 256Mi
-
-# =============================================================================
-# 追加のアラートルール
-# =============================================================================
-additionalPrometheusRulesMap:
-  homelab-rules:
-    groups:
-      - name: homelab-node-alerts
-        rules:
-          # ノードダウン検知
-          - alert: NodeDown
-            expr: up{job="node-exporter"} == 0
-            for: 2m
-            labels:
-              severity: critical
-            annotations:
-              summary: "Node {{ $labels.instance }} is down"
-              description: "Node {{ $labels.instance }} has been down for more than 2 minutes."
-
-          # CPU使用率 > 85%（ホームラボ向け緩和設定）
-          - alert: HighCpuUsage
-            expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
-            for: 10m
-            labels:
-              severity: warning
-            annotations:
-              summary: "High CPU usage on {{ $labels.instance }}"
-              description: "CPU usage is above 85% (current: {{ $value }}%)"
-
-          # メモリ使用率 > 85%
-          - alert: HighMemoryUsage
-            expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
-            for: 5m
-            labels:
-              severity: warning
-            annotations:
-              summary: "High memory usage on {{ $labels.instance }}"
-              description: "Memory usage is above 85% (current: {{ $value }}%)"
-
-          # ディスク使用率 > 85%（ホームラボ向け緩和設定）
-          - alert: HighDiskUsage
-            expr: (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) * 100 > 85
-            for: 15m
-            labels:
-              severity: warning
-            annotations:
-              summary: "High disk usage on {{ $labels.instance }}"
-              description: "Disk usage is above 85% on {{ $labels.mountpoint }} (current: {{ $value }}%)"
-
-      - name: homelab-kubernetes-alerts
-        rules:
-          # Pod CrashLoopBackOff
-          - alert: PodCrashLoopBackOff
-            expr: increase(kube_pod_container_status_restarts_total[1h]) > 5
-            for: 5m
-            labels:
-              severity: warning
-            annotations:
-              summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is in CrashLoopBackOff"
-              description: "Pod has restarted {{ $value }} times in the last hour"
-
-          # Pod Pending 状態が続く（10分以上）
-          - alert: PodPendingTooLong
-            expr: kube_pod_status_phase{phase="Pending"} == 1
-            for: 10m
-            labels:
-              severity: warning
-            annotations:
-              summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is Pending"
-              description: "Pod has been in Pending state for more than 10 minutes"
-
-      - name: homelab-lb-alerts
-        rules:
-          # MetalLB Speaker Pod停止（4台中2台以上停止でCritical）
-          - alert: MetalLBSpeakerDown
-            expr: count(up{job="metallb-speaker"} == 1) < 3
-            for: 2m
-            labels:
-              severity: critical
-            annotations:
-              summary: "MetalLB Speaker pods are down"
-              description: "Only {{ $value }} MetalLB Speaker pods are running (expected 4)"
-
-          # MetalLB IP Pool枯渇警告（残り2以下）
-          - alert: MetalLBIPPoolLow
-            expr: metallb_allocator_addresses_available <= 2
-            for: 5m
-            labels:
-              severity: warning
-            annotations:
-              summary: "MetalLB IP pool running low"
-              description: "Only {{ $value }} IP addresses remaining in pool"
-
-          # MetalLB IP Pool枯渇（残り0）
-          - alert: MetalLBIPPoolExhausted
-            expr: metallb_allocator_addresses_available == 0
-            for: 1m
-            labels:
-              severity: critical
-            annotations:
-              summary: "MetalLB IP pool exhausted"
-              description: "No IP addresses available in pool"
-
-          # Ingress Controller停止
-          - alert: IngressControllerDown
-            expr: kube_deployment_status_replicas_ready{deployment="ingress-nginx-controller"} == 0
-            for: 2m
-            labels:
-              severity: critical
-            annotations:
-              summary: "Ingress Controller is down"
-              description: "No ready replicas for ingress-nginx-controller"
-
-          # Ingress 5xx エラー率（警告）
-          - alert: IngressHighErrorRate
-            expr: |
-              sum(rate(nginx_ingress_controller_requests{status=~"5.."}[5m]))
-              / sum(rate(nginx_ingress_controller_requests[5m])) * 100 > 5
-            for: 5m
-            labels:
-              severity: warning
-            annotations:
-              summary: "High 5xx error rate on Ingress"
-              description: "5xx error rate is {{ $value }}% (threshold: 5%)"
-
-          # Ingress 5xx エラー率（Critical）
-          - alert: IngressCriticalErrorRate
-            expr: |
-              sum(rate(nginx_ingress_controller_requests{status=~"5.."}[5m]))
-              / sum(rate(nginx_ingress_controller_requests[5m])) * 100 > 20
-            for: 2m
-            labels:
-              severity: critical
-            annotations:
-              summary: "Critical 5xx error rate on Ingress"
-              description: "5xx error rate is {{ $value }}% (threshold: 20%)"
+# 監視専用ノードにスケジュール（オプション）
+# nodeSelector:
+#   node-role.kubernetes.io/monitoring: "true"
+# tolerations:
+#   - key: "dedicated"
+#     operator: "Equal"
+#     value: "monitoring"
+#     effect: "NoSchedule"
