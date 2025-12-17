@@ -15,4 +15,4 @@ cluster:
       bind-address: 0.0.0.0
   etcd:
     advertisedSubnets:
-      - 192.168.100.0/24  # Internal network for etcd
+      - 10.0.0.0/24  # External network for etcd (internal network not configured)

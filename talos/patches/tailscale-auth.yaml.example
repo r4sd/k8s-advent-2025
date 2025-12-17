@@ -1,0 +1,13 @@
+# Tailscale 認証設定テンプレート
+# このファイルを tailscale-auth.yaml にコピーして Auth Key を設定してください
+# tailscale-auth.yaml は .gitignore で除外されています
+machine:
+  files:
+    - content: |
+        TS_AUTHKEY=tskey-auth-XXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXX
+        TS_ROUTES=10.0.0.0/24,10.96.0.0/12,10.244.0.0/16
+        TS_ACCEPT_DNS=false
+        TS_EXTRA_ARGS=--advertise-tags=tag:k8s-node
+      path: /var/etc/tailscale/auth.env
+      permissions: 0o600
+      op: create

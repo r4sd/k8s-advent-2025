@@ -30,19 +30,19 @@ resource "hyperv_machine_instance" "controlplane" {
     switch_name = var.internal_switch_name
   }
 
-  # DVD Drive (Talos ISO)
-  #  dvd_drives {
-  #    controller_number   = 0
-  #    controller_location = 1
-  #    path                = var.talos_iso_path
-  #  }
-
-  # ハードディスク
+  # ハードディスク（Gen 1 は IDE 0 からのみブート可能）
   hard_disk_drives {
-    controller_type     = "Scsi"
+    controller_type     = "Ide"
     controller_number   = 0
     controller_location = 0
     path                = hyperv_vhd.controlplane_vhd.path
+  }
+
+  # DVD Drive (Talos ISO) - IDE 1（一時的な使用）
+  dvd_drives {
+    controller_number   = 1
+    controller_location = 0
+    path                = var.talos_iso_path
   }
 }
 
@@ -80,18 +80,18 @@ resource "hyperv_machine_instance" "workers" {
     switch_name = var.internal_switch_name
   }
 
-  # DVD Drive (Talos ISO)
-  #  dvd_drives {
-  #    controller_number   = 0
-  #    controller_location = 1
-  #    path                = var.talos_iso_path
-  #  }
-
-  # ハードディスク
+  # ハードディスク（Gen 1 は IDE 0 からのみブート可能）
   hard_disk_drives {
-    controller_type     = "Scsi"
+    controller_type     = "Ide"
     controller_number   = 0
     controller_location = 0
     path                = hyperv_vhd.worker_vhds[count.index].path
+  }
+
+  # DVD Drive (Talos ISO) - IDE 1（一時的な使用）
+  dvd_drives {
+    controller_number   = 1
+    controller_location = 0
+    path                = var.talos_iso_path
   }
 }

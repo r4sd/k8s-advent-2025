@@ -10,6 +10,13 @@ machine:
     rbac: true
     stableHostname: true
 
+  # Tailscale Extension
+  # Talos v1.11.x 対応バージョン: 1.88.1
+  # 最新確認: https://github.com/siderolabs/extensions/releases
+  install:
+    extensions:
+      - image: ghcr.io/siderolabs/tailscale:1.88.1
+
 cluster:
   network:
     cni:

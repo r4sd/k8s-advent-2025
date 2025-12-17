@@ -19,7 +19,7 @@
 | 5 | 12/7 | TLS証明書管理 | [Qiita](https://qiita.com/august009/items/5bf8e16cb7919d5fb9e0) |
 | 6 | 12/10 | Helm と Kustomize | [Qiita](https://qiita.com/august009/items/cc391432361ae3b2c81e) |
 | 7 | 12/11 | ArgoCD GitOps実践 | [Qiita](https://qiita.com/august009/items/27b15ad4cf503e214bd6) |
-| 8 | 12/17 | セキュリティ | 公開予定 |
+| 8 | 12/17 | セキュリティ | [Qiita]|(https://qiita.com/august009/items/484dd09cfa192d1a7eba) |
 | 9 | 12/18 | Chaos Mesh障害注入テスト | 公開予定 |
 
 ## 🏗️ 構成図

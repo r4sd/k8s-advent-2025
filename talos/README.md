@@ -300,7 +300,8 @@ talos/
 以下のファイルは **絶対にコミットしない**：
 
 - `talosconfig` - talosctl認証情報
-- `secrets.yaml` - クラスタシークレット
+- `secrets.yaml` - クラスタシークレット（1Password にバックアップ推奨）
+- `patches/tailscale-auth.yaml` - Tailscale Auth Key
 - `*.secret` - すべてのシークレットファイル
 
 `.gitignore` で除外されていることを確認：
@@ -308,6 +309,21 @@ talos/
 ```bash
 cat ../../.gitignore | grep talos
 ```
+
+### secrets.yaml のバックアップ
+
+`secrets.yaml` は PC 障害時の復旧に必要です。以下の方法でバックアップ：
+
+1. **1Password に保存**（推奨）
+   - ファイルごと Secure Note または Document として保存
+   - 復旧時にコピーするだけ
+
+2. **既存クラスタからの再抽出**（クラスタが生きている場合）
+
+   ```bash
+   talosctl gen secrets -o secrets.yaml \
+     --from-controlplane-config controlplane.yaml
+   ```
 
 ### mTLS認証
 

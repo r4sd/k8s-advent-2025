@@ -20,5 +20,5 @@ patchesStrategicMerge:
       name: ingress-nginx-controller
       namespace: ingress-nginx
     spec:
-      # MetalLBで特定のIPを割り当てる場合
-      loadBalancerIP: 10.0.0.190
+      # MetalLBで特定のIPを割り当てる場合（範囲: 10.0.0.200-220）
+      loadBalancerIP: 10.0.0.210
