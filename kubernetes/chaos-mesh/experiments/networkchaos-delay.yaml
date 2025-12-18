@@ -14,8 +14,8 @@ spec:
     labelSelectors:
       app.kubernetes.io/name: podinfo
   delay:
-    latency: "300ms"      # 300ms遅延
+    latency: "3000ms"     # 3秒遅延（極端なテスト）
     correlation: "100"    # 100%の確率で適用
-    jitter: "50ms"        # ±50msの揺らぎ
+    jitter: "500ms"       # ±500msの揺らぎ
   direction: to           # 受信トラフィックに遅延
   duration: "60s"
