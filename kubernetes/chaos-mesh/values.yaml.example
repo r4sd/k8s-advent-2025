@@ -1,0 +1,21 @@
+# Chaos Mesh 設定例
+# 実際の設定は values.yaml に記述
+
+# Chaos Daemon 設定
+chaosDaemon:
+  runtime: containerd
+  socketPath: /run/containerd/containerd.sock
+
+# Controller Manager 設定
+controllerManager:
+  nodeSelector:
+    your-label: "value"
+
+# Dashboard 設定
+dashboard:
+  ingress:
+    enabled: true
+    hosts:
+      - name: chaos.example.local
+        tls: true
+        tlsSecret: chaos-dashboard-tls

@@ -1,0 +1,21 @@
+# NetworkChaos: ネットワーク遅延を注入する実験
+# レスポンス時間の変化を検証
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: network-delay-demo
+  namespace: chaos-mesh
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces:
+      - demo
+    labelSelectors:
+      app.kubernetes.io/name: podinfo
+  delay:
+    latency: "300ms"      # 300ms遅延
+    correlation: "100"    # 100%の確率で適用
+    jitter: "50ms"        # ±50msの揺らぎ
+  direction: to           # 受信トラフィックに遅延
+  duration: "60s"

@@ -1,0 +1,16 @@
+# podinfo の Prometheus メトリクス収集
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: podinfo
+  namespace: demo
+  labels:
+    release: kube-prometheus  # Prometheus が検出するためのラベル
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: podinfo
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s

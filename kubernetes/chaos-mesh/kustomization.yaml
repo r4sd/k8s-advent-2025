@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: chaos-mesh
+
+resources:
+  - namespace.yaml
+
+helmCharts:
+  - name: chaos-mesh
+    repo: https://charts.chaos-mesh.org
+    version: "2.8.0"
+    releaseName: chaos-mesh
+    valuesFile: values.yaml
+
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/part-of: homelab-infra

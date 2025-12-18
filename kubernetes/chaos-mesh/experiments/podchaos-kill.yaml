@@ -1,0 +1,16 @@
+# PodChaos: Pod を強制終了する実験
+# ReplicaSet の自動復旧を検証
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: pod-kill-demo
+  namespace: chaos-mesh
+spec:
+  action: pod-kill
+  mode: one  # 1つだけ削除
+  selector:
+    namespaces:
+      - demo
+    labelSelectors:
+      app.kubernetes.io/name: podinfo
+  duration: "30s"

@@ -1,0 +1,58 @@
+# Chaos Mesh 設定
+# Talos Linux + containerd 環境向け
+
+# タイムゾーン
+timezone: "Asia/Tokyo"
+
+# Chaos Daemon 設定
+# 全ノードで実行（障害注入に必要）
+chaosDaemon:
+  runtime: containerd
+  socketPath: /run/containerd/containerd.sock
+
+# Controller Manager 設定
+# Worker-03（監視ノード）に配置
+controllerManager:
+  replicaCount: 1
+  nodeSelector:
+    homelab.local/role: "monitoring"
+  resources:
+    requests:
+      cpu: 25m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# Dashboard 設定
+dashboard:
+  create: true
+  replicaCount: 1
+  securityMode: true
+
+  # Worker-03（監視ノード）に配置
+  nodeSelector:
+    homelab.local/role: "monitoring"
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  # Service 設定（Ingress 経由でアクセス）
+  service:
+    type: ClusterIP
+
+  # Ingress 設定
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: homelab-ca-issuer
+    hosts:
+      - name: chaos.homelab.local
+        tls: true
+        tlsSecret: chaos-dashboard-tls
